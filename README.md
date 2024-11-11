@@ -13,8 +13,12 @@
 - !merge
 - !check
 
+### Setup 
+1. Invite bot ([@mergeapprovebot](https://gitlab.com/mergeapprovebot)) in your repository as **maintainer** (you can revoke permissions from usual developers in order to prevent merging)
+2. Add webhook `https://mergebot.tools/mergebot/webhook/gitlab/your_username_or_company_name/repo-name/` (Comments and merge request events)
+3. PROFIT: now you can create MR, leave commands: !check and then !merge (comment in MR)
 
-### Quickstart
+### Quickstart on your env
 
 Create personal/repo/org token in gitlab, copy it and set as env variable
 ```bash
@@ -28,12 +32,6 @@ Run bot
 ```
 go run ./
 ```
-
-Open gitlab settings -> webhooks, add new webhook:
-- url: https://your_host:8080/mergebot/webhook/gitlab/owner/repo-name/
-
-
-Now you can create a new MR and send comment (command): "!check" and then "!merge"
 
 ### Build
 ```
