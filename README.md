@@ -46,7 +46,7 @@ Config file must be named `.mrbot.yaml` and placed in root directory
 
 - `approvers`: list of users who must approve MR/PR, default is empty (`[]`)
 
-- `min_approvals`: minimun number of required approvals, default is `1`
+- `min_approvals`: minimum number of required approvals, default is `1`
 
 - `allow_empty_description`: whether MR description is allowed to be empty or not, default is `true`
 
