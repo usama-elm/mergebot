@@ -8,6 +8,7 @@
 - rule for approvers
 - merge on command
 - update branch
+- delete stale branches
 
 
 ### Commands
@@ -44,23 +45,29 @@ go build ./
 
 ## Config file
 
-Config file must be named `.mrbot.yaml` and placed in root directory
+Config file must be named `.mrbot.yaml`, placed in root directory, default branch (main/master)
 
-- `approvers`: list of users who must approve MR/PR, default is empty (`[]`)
+```yaml
+approvers: [] # list of users who must approve MR/PR, default is empty ([])
 
-- `min_approvals`: minimum number of required approvals, default is `1`
+min_approvals: 1 # minimum number of required approvals, default is 1
 
-- `allow_empty_description`: whether MR description is allowed to be empty or not, default is `true`
+allow_empty_description: true # whether MR description is allowed to be empty or not, default is true
 
-- `allow_failing_pipelines`: whether pipelines are allowed to fail, default is `true`
+allow_failing_pipelines: true # whether pipelines are allowed to fail, default is true
 
-- `title_regex`: pattern of title, default is `.*`
+title_regex: ".*" # pattern of title, default is ".*"
 
-- `greetings_enabled`: enable message for new MR, default is `false`
+greetings:
+  enabled: false # enable message for new MR, default is false
+  template: "" # template of message for new MR, default is "Requirements:\n - Min approvals: {{ .MinApprovals }}\n - Title regex: {{ .TitleRegex }}\n\nOnce you've done, send **!merge** command and i will merge it!"
 
-- `greetings_template`: template of message for new MR, default is `Requirements:\n - Min approvals: {{ .MinApprovals }}\n - Title regex: {{ .TitleRegex }}\n\nOnce you've done, send **!merge** command and i will merge it!`
+auto_master_merge: false # the bot tries to update branch from master, default is false
 
-- `auto_master_merge`: the bot tries to merge target branch, default is `false`
+stale_branches_deletion:
+  enabled: false # enable deletion of stale branches after every merge, default is false
+  days: 90 # branch is staled after int days, default is 90
+```
 
 Example:
 
@@ -73,9 +80,13 @@ allow_empty_description: true
 allow_failing_pipelines: true
 allow_failing_tests: true
 title_regex: "^[A-Z]+-[0-9]+" # title begins with jira key prefix, e.g. SCO-123 My cool Title
-greetings_enabled: true
-greetings_template: "Requirements:\n - Min approvals: {{ .MinApprovals }}\n - Title regex: {{ .TitleRegex }}\n\nOnce you've done, send **!merge** command and i will merge it!"
+greetings:
+  enabled: true
+  template: "Requirements:\n - Min approvals: {{ .MinApprovals }}\n - Title regex: {{ .TitleRegex }}\n\nOnce you've done, send **!merge** command and i will merge it!"
 auto_master_merge: true
+stale_branches_deletion:
+  enabled: true
+  days: 90
 ```
 
 place it in root of your repo and name it `.mrbot.yaml`
