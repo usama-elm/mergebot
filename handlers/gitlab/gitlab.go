@@ -44,7 +44,10 @@ func (g *GitlabProvider) UpdateFromMaster(projectId, mergeId int) error {
 		return err
 	}
 
-	project, _, err := g.client.Projects.GetProject(projectId, &gitlab.GetProjectOptions{Statistics: gitlab.Bool(true)})
+	project, _, err := g.client.Projects.GetProject(
+		projectId,
+		&gitlab.GetProjectOptions{Statistics: gitlab.Bool(true)},
+	)
 	if err != nil {
 		return err
 	}
@@ -53,26 +56,24 @@ func (g *GitlabProvider) UpdateFromMaster(projectId, mergeId int) error {
 		return handlers.RepoSizeError
 	}
 
-	if err = handlers.MergeMaster(
+	return handlers.MergeMaster(
 		tokenUsername,
 		os.Getenv(gitlabToken),
 		project.HTTPURLToRepo,
 		g.mr.SourceBranch,
 		g.mr.TargetBranch,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	)
 }
 
 func (g *GitlabProvider) LeaveComment(projectId, mergeId int, message string) error {
 	slog.Debug("leaveComment in gitlab", "message", message, "projectId", projectId)
+
 	_, _, err := g.client.Notes.CreateMergeRequestNote(
 		projectId,
 		mergeId,
 		&gitlab.CreateMergeRequestNoteOptions{Body: &message},
 	)
+
 	return err
 }
 
@@ -82,6 +83,7 @@ func (g *GitlabProvider) Merge(projectId, mergeId int, message string) error {
 		mergeId,
 		&gitlab.AcceptMergeRequestOptions{Squash: &t, ShouldRemoveSourceBranch: &t, SquashCommitMessage: &message},
 	)
+
 	return err
 }
 
@@ -89,7 +91,10 @@ func (g *GitlabProvider) GetApprovals(projectId, mergeId int) (map[string]struct
 	page := 1
 	approvals := map[string]struct{}{}
 	for {
-		notes, resp, err := g.client.Notes.ListMergeRequestNotes(projectId, mergeId, &gitlab.ListMergeRequestNotesOptions{ListOptions: gitlab.ListOptions{Page: page}})
+		notes, resp, err := g.client.Notes.ListMergeRequestNotes(
+			projectId,
+			mergeId,
+			&gitlab.ListMergeRequestNotesOptions{ListOptions: gitlab.ListOptions{Page: page}})
 		if err != nil {
 			return nil, err
 		}

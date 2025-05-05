@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"mergebot/webhook"
 	"os"
+	"path"
+	"sync"
 
 	"net/http"
 
@@ -17,15 +19,15 @@ func start() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	// e.Use(echoprometheus.NewMiddleware("mergebot"))
 
-	// e.GET("/metrics", echoprometheus.NewHandler())
 	e.GET("/healthy", healthcheck)
 	e.POST("/mergebot/webhook/:provider/:owner/:repo/", Handler)
 
 	if os.Getenv("TLS_ENABLED") == "true" {
+		tmpDir := path.Join(os.TempDir(), "tls", ".cache")
+
 		e.AutoTLSManager.HostPolicy = autocert.HostWhitelist(os.Getenv("TLS_DOMAIN"))
-		e.AutoTLSManager.Cache = autocert.DirCache("/tmp/tls/.cache")
+		e.AutoTLSManager.Cache = autocert.DirCache(tmpDir)
 		e.AutoTLSManager.Prompt = autocert.AcceptTOS
 		e.Logger.Fatal(e.StartAutoTLS(":443"))
 		return
@@ -33,6 +35,11 @@ func start() {
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
+
+var (
+	handlerFuncs = map[string]func(string, *webhook.Webhook) error{}
+	handlerMu    sync.RWMutex
+)
 
 //nolint:errcheck
 func Handler(c echo.Context) error {
@@ -52,6 +59,9 @@ func Handler(c echo.Context) error {
 
 	slog.Debug("handler", "event", hook.Event)
 
+	handlerMu.RLock()
+	defer handlerMu.RUnlock()
+
 	if f, ok := handlerFuncs[hook.Event]; ok {
 		go func() {
 			if err := f(providerName, hook); err != nil {
@@ -63,17 +73,11 @@ func Handler(c echo.Context) error {
 	return nil
 }
 
-var (
-	handlerFuncs = map[string]func(string, *webhook.Webhook) error{}
-)
-
 func handle(onEvent string, funcHandler func(string, *webhook.Webhook) error) {
+	handlerMu.Lock()
+	defer handlerMu.Unlock()
+
 	handlerFuncs[onEvent] = func(provider string, hook *webhook.Webhook) error {
-		if err := funcHandler(provider, hook); err != nil {
-			// metrics.CommandFailedInc(hook.GetCmd(), provider)
-			return err
-		}
-		// metrics.CommandSucceededInc(hook.GetCmd(), provider)
-		return nil
+		return funcHandler(provider, hook)
 	}
 }
