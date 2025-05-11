@@ -1,0 +1,13 @@
+[project]
+name = "mrbot"
+version = "0.1.0"
+description = "MR bot for Gitlab"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "gitpython>=3.1.44",
+    "litestar[standard]>=2.16.0",
+    "msgspec>=0.19.0",
+    "python-gitlab>=5.6.0",
+    "pyyaml>=6.0.2",
+]

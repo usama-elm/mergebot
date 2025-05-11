@@ -1,0 +1,13 @@
+name: mr-bot
+
+services:
+  bot:
+    build: .
+    restart: always
+    ports:
+      - "8888:8080"
+    env_file:
+      - bot.env
+    volumes:
+      - ./cert:/etc/letsencrypt
+      - /etc/ssl/certs:/etc/ssl/certs:ro
